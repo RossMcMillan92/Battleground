@@ -60,9 +60,13 @@ Object.defineProperty(exports, '__esModule', {
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
+var _healthJs = require('./health.js');
+
 var _movable = require('./movable');
 
 var Enemy = function Enemy(constraints) {
+    var health = (0, _healthJs.Health)();
+
     var dimensions = {
         width: 80,
         height: 80
@@ -83,7 +87,8 @@ var Enemy = function Enemy(constraints) {
     var accelStep = .025;
     var decelStep = .01;
 
-    var isHurt = false;
+    var damagePower = 5;
+    var isRepelling = false;
 
     var walkingMap = [{
         duration: 2000,
@@ -101,20 +106,14 @@ var Enemy = function Enemy(constraints) {
         var input = getInput();
         var newAcceleration = acceleration;
         var newPos = undefined;
-        console.log('a1', newAcceleration);
-        // newAcceleration = calculateInputDeceleration(newAcceleration, decelStep);
-        console.log('a2', newAcceleration);
         newAcceleration = (0, _movable.attractCalc)(newAcceleration, pos, { x: targetX, y: targetY }, accelStep, decelStep, attractionThreshold);
-        console.log('a3', newAcceleration);
-        newAcceleration = (0, _movable.calculateCollisionAcceleration)(newAcceleration, getPos(), constraints, isHurt);
-        console.log('a4', newAcceleration);
+        newAcceleration = (0, _movable.calculateCollisionAcceleration)(newAcceleration, getPos(), constraints, isRepelling);
         newPos = (0, _movable.calculatePos)(pos, newAcceleration, velocity);
-        console.log('a5', newAcceleration);
 
         // MUTATIONS
         pos = newPos;
         acceleration = newAcceleration;
-        isHurt = false;
+        isRepelling = false;
     };
 
     var attract = function attract() {
@@ -128,8 +127,12 @@ var Enemy = function Enemy(constraints) {
         pos = { x: x, y: y };
     };
 
-    var hurt = function hurt(data) {
-        isHurt = data;
+    var repel = function repel(data) {
+        isRepelling = data;
+    };
+
+    var getDamagePower = function getDamagePower() {
+        return damagePower;
     };
 
     var getBoundingBox = function getBoundingBox() {
@@ -141,25 +144,83 @@ var Enemy = function Enemy(constraints) {
     };
 
     var render = function render(ctx) {
+        renderSelf(ctx);
+        health.renderHealthBar(ctx, getPos());
+    };
+
+    var renderSelf = function renderSelf(ctx) {
         ctx.beginPath();
         ctx.fillStyle = '#d22';
         ctx.rect(pos.x, pos.y, dimensions.width, dimensions.height);
         ctx.fill();
     };
 
-    return {
+    var output = {
         attract: attract,
         updatePosition: updatePosition,
         getBoundingBox: getBoundingBox,
+        getDamagePower: getDamagePower,
         getPos: getPos,
-        hurt: hurt,
+        repel: repel,
         render: render
     };
+
+    return Object.assign({}, output, health);
 };
 
 exports.Enemy = Enemy;
 
-},{"./movable":6}],3:[function(require,module,exports){
+},{"./health.js":3,"./movable":7}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+var Health = function Health() {
+    var healthBarHeight = 10;
+    var healthBarStrokeWidth = 2;
+    var health = 100;
+
+    var updateHealth = function updateHealth(amount) {
+        health = Math.max(0, Math.min(health + amount, 100)); // Health min 0 max 100
+    };
+
+    var renderHealthBar = function renderHealthBar(ctx, playerPos) {
+        // Fill
+        ctx.beginPath();
+        ctx.fillStyle = getFillColor(health);
+        ctx.fillRect(playerPos.x + healthBarStrokeWidth, playerPos.y - healthBarHeight * 2, playerPos.width * (health / 100) - healthBarStrokeWidth, healthBarHeight);
+
+        // Stroke
+        ctx.beginPath();
+        ctx.lineWidth = healthBarStrokeWidth;
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(playerPos.x + healthBarStrokeWidth / 2, playerPos.y - healthBarHeight * 2, playerPos.width - healthBarStrokeWidth / 2, healthBarHeight);
+    };
+
+    var getFillColor = function getFillColor(health) {
+        if (health > 67) return '#0f0';
+        if (health > 33) return '#FF8300';
+        return '#f00';
+    };
+
+    return {
+        getHealth: function getHealth() {
+            return health;
+        },
+        hurt: function hurt(amount) {
+            return updateHealth(-amount);
+        },
+        heal: function heal(amount) {
+            return updateHealth(amount);
+        },
+        renderHealthBar: renderHealthBar
+    };
+};
+
+exports.Health = Health;
+
+},{}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -184,13 +245,23 @@ var item = function item(constraints) {
     var accelStep = .025;
     var decelStep = .05;
 
+    var collected = false;
+    var healingPower = 10;
+
     var update = function update() {};
+
+    var collect = function collect() {
+        if (collected) return 0;
+        collected = true;
+        return healingPower;
+    };
 
     var getBoundingBox = function getBoundingBox() {
         return [pos.x, pos.x + width, pos.y, pos.y + height];
     };
 
     var render = function render(ctx) {
+        if (collected) return;
         ctx.beginPath();
         ctx.fillStyle = '#493';
         ctx.rect(pos.x, pos.y, width, height);
@@ -199,6 +270,7 @@ var item = function item(constraints) {
 
     return {
         update: update,
+        collect: collect,
         getBoundingBox: getBoundingBox,
         render: render
     };
@@ -207,7 +279,7 @@ var item = function item(constraints) {
 exports["default"] = item;
 module.exports = exports["default"];
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -274,7 +346,7 @@ function Keyboard() {
 exports['default'] = Keyboard;
 module.exports = exports['default'];
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -313,7 +385,7 @@ var Loop = function Loop() {
 exports["default"] = Loop;
 module.exports = exports["default"];
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -461,18 +533,20 @@ exports.calculateDeceleration = calculateDeceleration;
 exports.calculatePos = calculatePos;
 exports.getWalkCycle = getWalkCycle;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _toolsJs = require('./tools.js');
+var _healthJs = require('./health.js');
 
 var _movable = require('./movable');
 
 var Player = function Player(constraints) {
+    var health = (0, _healthJs.Health)();
+
     var dimensions = {
         width: 80,
         height: 80
@@ -493,26 +567,36 @@ var Player = function Player(constraints) {
     var accelStep = .025;
     var decelStep = .05;
 
-    var isHurt = false;
+    var damagePower = 25;
+    var isRepelling = false;
 
     var updatePosition = function updatePosition(input) {
         var velocity = (0, _movable.calculateVelocity)(velocityMap, input);
         var inputAcceleration = (0, _movable.calculateInputAcceleration)(acceleration, accelStep, decelStep, input);
         var inputDeceleration = (0, _movable.calculateInputDeceleration)(inputAcceleration, decelStep, input);
-        var collisionAcceleration = (0, _movable.calculateCollisionAcceleration)(inputDeceleration, getPos(), constraints, isHurt);
+        var collisionAcceleration = (0, _movable.calculateCollisionAcceleration)(inputDeceleration, getPos(), constraints, isRepelling);
         var newPos = (0, _movable.calculatePos)(pos, collisionAcceleration, velocity);
 
         // MUTATIONS
         pos = newPos;
         acceleration = collisionAcceleration;
-        isHurt = false;
+        isRepelling = false;
     };
 
-    var hurt = function hurt(data) {
-        isHurt = data;
+    var repel = function repel(data) {
+        isRepelling = data;
+    };
+
+    var getDamagePower = function getDamagePower() {
+        return damagePower;
     };
 
     var render = function render(ctx) {
+        renderSelf(ctx);
+        health.renderHealthBar(ctx, getPos());
+    };
+
+    var renderSelf = function renderSelf(ctx) {
         ctx.beginPath();
         ctx.fillStyle = '#222';
         ctx.rect(pos.x, pos.y, dimensions.width, dimensions.height);
@@ -527,18 +611,21 @@ var Player = function Player(constraints) {
         return Object.assign({}, pos, dimensions);
     };
 
-    return {
+    var output = {
         updatePosition: updatePosition,
         getBoundingBox: getBoundingBox,
+        getDamagePower: getDamagePower,
         getPos: getPos,
-        hurt: hurt,
+        repel: repel,
         render: render
     };
+
+    return Object.assign({}, output, health);
 };
 
 exports.Player = Player;
 
-},{"./movable":6,"./tools.js":8}],8:[function(require,module,exports){
+},{"./health.js":3,"./movable":7}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -566,7 +653,7 @@ var compose = function compose() {
 exports.repeat = repeat;
 exports.compose = compose;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (process,global){
 /*
 //  Polyfills
@@ -1072,6 +1159,7 @@ if (!window.console) console = { log: function log() {} };
 	var items = Array.from(Array(20)).map(function (item) {
 		return (0, _appItem2["default"])([cw, ch]);
 	});
+	var uncollidedItems = items;
 	var camera = [0, 0];
 
 	// This will run on document ready
@@ -1079,32 +1167,14 @@ if (!window.console) console = { log: function log() {} };
 
 		var frame = function frame(t) {
 			var simsNeeded = _calculateSimulatioins(t);
-			var playerPos = player.getPos();
-			var uncollidedItems = items;
 			var camera = undefined;
+			var simulation = _simulate(player, enemy);
 
-			var detectPlayerCollision = (0, _appCollisions.detectCollision)(player.getBoundingBox());
-			var detectEnemyCollision = (0, _appCollisions.detectCollision)(enemy.getBoundingBox());
-
-			(0, _appTools.repeat)(simsNeeded, function () {
-				var playerToEnemyCollision = detectPlayerCollision(enemy.getBoundingBox());
-				var enemyToPlayerCollision = detectEnemyCollision(player.getBoundingBox());
-				if (playerToEnemyCollision) player.hurt(playerToEnemyCollision);
-				if (enemyToPlayerCollision) enemy.hurt(enemyToPlayerCollision);
-
-				player.updatePosition(keyboard.getState());
-				enemy.updatePosition(playerPos.x, playerPos.y);
-				// enemy.attract();
-
-				// only need to render uncollided items
-				uncollidedItems = items.filter(function (item) {
-					return !detectPlayerCollision(item.getBoundingBox()) && !detectEnemyCollision(item.getBoundingBox());
-				});
-			});
+			simulation();
 
 			ctx.save();
 			ctx.clearRect(0, 0, cw, ch);
-			camera = _calculateCameraTranslation([0, 0], playerPos, cw, ch);
+			camera = _calculateCameraTranslation([0, 0], player.getPos(), cw, ch);
 			ctx.translate.apply(ctx, _toConsumableArray(camera));
 			uncollidedItems.forEach(function (item) {
 				return item.render(ctx);
@@ -1114,6 +1184,48 @@ if (!window.console) console = { log: function log() {} };
 			ctx.restore();
 
 			items = uncollidedItems;
+		};
+
+		// UNPURE AS FUCK
+		var _simulate = function _simulate(player, enemy) {
+			return function () {
+				var playerPos = player.getPos();
+				var collectedItemAmount = 0;
+				var detectPlayerCollision = (0, _appCollisions.detectCollision)(player.getBoundingBox());
+				var detectEnemyCollision = (0, _appCollisions.detectCollision)(enemy.getBoundingBox());
+
+				var playerToEnemyCollision = detectPlayerCollision(enemy.getBoundingBox());
+				var enemyToPlayerCollision = detectEnemyCollision(player.getBoundingBox());
+
+				if (playerToEnemyCollision) {
+					player.repel(playerToEnemyCollision, enemy.getDamagePower());
+					enemy.hurt(player.getDamagePower());
+				}
+				if (enemyToPlayerCollision) {
+					enemy.repel(enemyToPlayerCollision, player.getDamagePower());
+					player.hurt(enemy.getDamagePower());
+				}
+
+				console.log(player.getHealth());
+
+				if (player.getHealth() > 0) player.updatePosition(keyboard.getState());
+				if (enemy.getHealth() > 0) enemy.updatePosition(playerPos.x, playerPos.y);
+
+				// only need to render uncollided items
+				var playerCollectItems = items.filter(function (item) {
+					return detectPlayerCollision(item.getBoundingBox());
+				});
+				var enemyCollectItems = items.filter(function (item) {
+					return detectEnemyCollision(item.getBoundingBox());
+				});
+
+				player.heal(playerCollectItems.reduce(function (prev, cur) {
+					return prev + cur.collect();
+				}, 0));
+				enemy.heal(enemyCollectItems.reduce(function (prev, cur) {
+					return prev + cur.collect();
+				}, 0));
+			};
 		};
 
 		var _calculateCameraTranslation = function _calculateCameraTranslation(camera, playerPos, cw, ch) {
@@ -1141,7 +1253,7 @@ if (!window.console) console = { log: function log() {} };
 		};
 
 		var _calculateSimulatioins = (function () {
-			var fps = 120;
+			var fps = 60;
 			var tick = 1000 / fps;
 			var accumulator = 0;
 			var simsNeeded = 0;
@@ -1164,7 +1276,7 @@ if (!window.console) console = { log: function log() {} };
 })();
 
 }).call(this,require("ngpmcQ"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./app/collisions":1,"./app/enemy":2,"./app/item":3,"./app/keyboard":4,"./app/loop":5,"./app/player":7,"./app/tools":8,"./plugins/domready":10,"ngpmcQ":11}],10:[function(require,module,exports){
+},{"./app/collisions":1,"./app/enemy":2,"./app/item":4,"./app/keyboard":5,"./app/loop":6,"./app/player":8,"./app/tools":9,"./plugins/domready":11,"ngpmcQ":12}],11:[function(require,module,exports){
 /*! * domready (c) Dustin Diaz 2012 - License MIT */
 "use strict";
 
@@ -1203,7 +1315,7 @@ if (!window.console) console = { log: function log() {} };
   };
 });
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // shim for using process in browser
 
 'use strict';
@@ -1271,4 +1383,4 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[9])
+},{}]},{},[10])

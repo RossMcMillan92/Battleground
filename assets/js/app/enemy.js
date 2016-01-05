@@ -1,5 +1,6 @@
 "use strict";
 
+import { Health } from './health.js';
 import {
     attractCalc,
     calculateVelocity,
@@ -11,6 +12,8 @@ import {
 } from './movable';
 
 const Enemy = (constraints) => {
+    let health = Health();
+    
     const dimensions = {
         width: 80,
         height: 80
@@ -31,7 +34,8 @@ const Enemy = (constraints) => {
     const accelStep = .025;
     const decelStep = .01;
 
-    let isHurt = false;
+    let damagePower = 5;
+    let isRepelling = false;
 
     const walkingMap = [
         {
@@ -52,20 +56,14 @@ const Enemy = (constraints) => {
         const input = getInput();
         let newAcceleration = acceleration;
         let newPos;
-console.log('a1', newAcceleration);
-        // newAcceleration = calculateInputDeceleration(newAcceleration, decelStep);
-console.log('a2', newAcceleration);
         newAcceleration = attractCalc(newAcceleration, pos, {x: targetX, y: targetY}, accelStep, decelStep, attractionThreshold);
-console.log('a3', newAcceleration);
-        newAcceleration = calculateCollisionAcceleration(newAcceleration, getPos(), constraints, isHurt);
-console.log('a4', newAcceleration);
+        newAcceleration = calculateCollisionAcceleration(newAcceleration, getPos(), constraints, isRepelling);
         newPos = calculatePos(pos, newAcceleration, velocity);
-console.log('a5', newAcceleration);
 
         // MUTATIONS
         pos          = newPos
         acceleration = newAcceleration;
-        isHurt       = false;
+        isRepelling       = false;
     }
   
     const attract = () => {
@@ -74,29 +72,39 @@ console.log('a5', newAcceleration);
         pos = { x, y };
     }
 
-    const hurt = (data) => {
-        isHurt = data;
+    const repel = (data) => {
+        isRepelling = data;
     }
+
+    const getDamagePower = () => damagePower;
 
     const getBoundingBox = () => [pos.x, pos.x + dimensions.width, pos.y, pos.y + dimensions.height];
 
     const getPos = () => Object.assign({}, pos, dimensions);
 
     const render = ctx => {
+        renderSelf(ctx);
+        health.renderHealthBar(ctx, getPos());
+    }
+
+    const renderSelf = (ctx) => {
         ctx.beginPath();
         ctx.fillStyle = '#d22';
         ctx.rect(pos.x, pos.y, dimensions.width, dimensions.height);
         ctx.fill();
     }
 
-    return {
+    const output = {
         attract,
         updatePosition,
         getBoundingBox,
+        getDamagePower,
         getPos,
-        hurt,
+        repel,
         render
     }
+
+    return Object.assign({}, output, health);
 };
 
 export { Enemy };

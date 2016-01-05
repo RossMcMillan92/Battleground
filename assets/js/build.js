@@ -60,46 +60,31 @@ import Keyboard from './app/keyboard';
 import { detectCollision } from './app/collisions';
 
 ;(function(){
-	const keyboard 	 = Keyboard();
-	const masterLoop = Loop();
-	const canvas     = document.getElementById('canvas');
-	const ctx        = canvas.getContext('2d');
-	let cw           = canvas.width = canvas.offsetWidth;
-	let ch           = canvas.height = canvas.offsetHeight;
-	let player 		 = Player([cw, ch]);
-	let enemy 		 = Enemy([cw, ch]);
-	let items 		 = Array.from(Array(20)).map(item => Item([cw, ch]));
-	let camera 		 = [0, 0];
+	const keyboard      = Keyboard();
+	const masterLoop    = Loop();
+	const canvas        = document.getElementById('canvas');
+	const ctx           = canvas.getContext('2d');
+	let cw              = canvas.width = canvas.offsetWidth;
+	let ch              = canvas.height = canvas.offsetHeight;
+	let player          = Player([cw, ch]);
+	let enemy           = Enemy([cw, ch]);
+	let items           = Array.from(Array(20)).map(item => Item([cw, ch]));
+	let uncollidedItems = items;
+	let camera          = [0, 0];
 
 	// This will run on document ready
 	const init = function(){
 
 		const frame = t => {
 			let simsNeeded = _calculateSimulatioins(t);
-			let playerPos  = player.getPos();
-			let uncollidedItems = items;
 			let camera;
+			let simulation = _simulate(player, enemy);
 
-			const detectPlayerCollision = detectCollision(player.getBoundingBox());
-			const detectEnemyCollision = detectCollision(enemy.getBoundingBox());
-
-			repeat(simsNeeded, () => {
-				const playerToEnemyCollision = detectPlayerCollision(enemy.getBoundingBox());
-				const enemyToPlayerCollision = detectEnemyCollision(player.getBoundingBox());
-				if(playerToEnemyCollision) player.hurt(playerToEnemyCollision);
-				if(enemyToPlayerCollision) enemy.hurt(enemyToPlayerCollision);
-
-				player.updatePosition(keyboard.getState());
-				enemy.updatePosition(playerPos.x, playerPos.y);
-				// enemy.attract();
-
-				// only need to render uncollided items
-				uncollidedItems = items.filter(item => !detectPlayerCollision(item.getBoundingBox()) && !detectEnemyCollision(item.getBoundingBox()));
-			})
+			simulation();
 
 			ctx.save();
 			ctx.clearRect(0, 0, cw, ch);
-			camera = _calculateCameraTranslation([0,0], playerPos, cw, ch);
+			camera = _calculateCameraTranslation([0,0], player.getPos(), cw, ch);
 			ctx.translate(...camera);
 			uncollidedItems.forEach(item => item.render(ctx));
 			player.render(ctx);
@@ -107,6 +92,39 @@ import { detectCollision } from './app/collisions';
 			ctx.restore();
 
 			items = uncollidedItems;
+		}
+
+		// UNPURE AS FUCK
+		const _simulate = (player, enemy) => () => {
+			const playerPos  = player.getPos();
+			let collectedItemAmount = 0;
+			const detectPlayerCollision = detectCollision(player.getBoundingBox());
+			const detectEnemyCollision = detectCollision(enemy.getBoundingBox());
+
+			const playerToEnemyCollision = detectPlayerCollision(enemy.getBoundingBox());
+			const enemyToPlayerCollision = detectEnemyCollision(player.getBoundingBox());
+
+			if(playerToEnemyCollision) {
+				player.repel(playerToEnemyCollision, enemy.getDamagePower());
+				enemy.hurt(player.getDamagePower());
+			}
+			if(enemyToPlayerCollision) {
+				enemy.repel(enemyToPlayerCollision, player.getDamagePower());
+				player.hurt(enemy.getDamagePower());
+			}
+
+			console.log(player.getHealth())
+
+			if(player.getHealth() > 0) player.updatePosition(keyboard.getState());
+			if(enemy.getHealth() > 0) enemy.updatePosition(playerPos.x, playerPos.y);
+
+			// only need to render uncollided items
+			const playerCollectItems = items.filter(item => detectPlayerCollision(item.getBoundingBox()));
+			const enemyCollectItems = items.filter(item => detectEnemyCollision(item.getBoundingBox()));
+
+			player.heal(playerCollectItems.reduce((prev, cur) => prev + cur.collect(), 0));
+			enemy.heal(enemyCollectItems.reduce((prev, cur) => prev + cur.collect(), 0));
+
 		}
 
 		const _calculateCameraTranslation = (camera, playerPos, cw, ch) => {
@@ -124,7 +142,7 @@ import { detectCollision } from './app/collisions';
 		}
 
 		const _calculateSimulatioins = (() => {
-			const fps       = 120;
+			const fps       = 60;
 			const tick      = 1000 / fps;
 			let accumulator = 0;
 			let simsNeeded  = 0;

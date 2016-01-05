@@ -19,13 +19,23 @@ const item = (constraints) => {
     let accelStep = .025;
     let decelStep = .05;
 
+    let collected = false;
+    let healingPower = 10;
+
     const update = () => {
         
     }
 
-    const getBoundingBox = () => [pos.x, pos.x + width, pos.y, pos.y + height]
+    const collect = () => {
+        if(collected) return 0;
+        collected = true;
+        return healingPower;
+    }
+
+    const getBoundingBox = () => [pos.x, pos.x + width, pos.y, pos.y + height];
 
     const render = ctx => {
+        if(collected) return;
         ctx.beginPath();
         ctx.fillStyle = '#493';
         ctx.rect(pos.x, pos.y, width, height);
@@ -34,6 +44,7 @@ const item = (constraints) => {
 
     return {
         update,
+        collect,
         getBoundingBox,
         render
     }
