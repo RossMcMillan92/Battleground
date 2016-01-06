@@ -1,6 +1,7 @@
 "use strict";
 
 import { Health } from './health.js';
+import { detectCollision as detectCollisionCalc } from './collisions';
 import {
     calculateVelocity,
     calculateInputAcceleration,
@@ -54,6 +55,8 @@ const Player = (constraints) => {
 
     const getDamagePower = () => damagePower;
 
+    const detectCollision = item => detectCollisionCalc(getBoundingBox())(item);
+
     const render = ctx => {
         renderSelf(ctx);
         health.renderHealthBar(ctx, getPos());
@@ -74,6 +77,7 @@ const Player = (constraints) => {
         updatePosition,
         getBoundingBox,
         getDamagePower,
+        detectCollision,
         getPos,
         repel,
         render

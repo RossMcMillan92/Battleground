@@ -1,6 +1,7 @@
 "use strict";
 
 import { Health } from './health.js';
+import { detectCollision as detectCollisionCalc } from './collisions';
 import {
     attractCalc,
     calculateVelocity,
@@ -78,6 +79,8 @@ const Enemy = (constraints) => {
 
     const getDamagePower = () => damagePower;
 
+    const detectCollision = item => detectCollisionCalc(getBoundingBox())(item);
+
     const getBoundingBox = () => [pos.x, pos.x + dimensions.width, pos.y, pos.y + dimensions.height];
 
     const getPos = () => Object.assign({}, pos, dimensions);
@@ -99,6 +102,7 @@ const Enemy = (constraints) => {
         updatePosition,
         getBoundingBox,
         getDamagePower,
+        detectCollision,
         getPos,
         repel,
         render

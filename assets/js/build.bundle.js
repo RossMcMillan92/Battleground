@@ -62,6 +62,8 @@ var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = 
 
 var _healthJs = require('./health.js');
 
+var _collisions = require('./collisions');
+
 var _movable = require('./movable');
 
 var Enemy = function Enemy(constraints) {
@@ -135,6 +137,10 @@ var Enemy = function Enemy(constraints) {
         return damagePower;
     };
 
+    var detectCollision = function detectCollision(item) {
+        return (0, _collisions.detectCollision)(getBoundingBox())(item);
+    };
+
     var getBoundingBox = function getBoundingBox() {
         return [pos.x, pos.x + dimensions.width, pos.y, pos.y + dimensions.height];
     };
@@ -160,6 +166,7 @@ var Enemy = function Enemy(constraints) {
         updatePosition: updatePosition,
         getBoundingBox: getBoundingBox,
         getDamagePower: getDamagePower,
+        detectCollision: detectCollision,
         getPos: getPos,
         repel: repel,
         render: render
@@ -170,7 +177,7 @@ var Enemy = function Enemy(constraints) {
 
 exports.Enemy = Enemy;
 
-},{"./health.js":3,"./movable":7}],3:[function(require,module,exports){
+},{"./collisions":1,"./health.js":3,"./movable":7}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -542,6 +549,8 @@ Object.defineProperty(exports, '__esModule', {
 
 var _healthJs = require('./health.js');
 
+var _collisions = require('./collisions');
+
 var _movable = require('./movable');
 
 var Player = function Player(constraints) {
@@ -591,6 +600,10 @@ var Player = function Player(constraints) {
         return damagePower;
     };
 
+    var detectCollision = function detectCollision(item) {
+        return (0, _collisions.detectCollision)(getBoundingBox())(item);
+    };
+
     var render = function render(ctx) {
         renderSelf(ctx);
         health.renderHealthBar(ctx, getPos());
@@ -615,6 +628,7 @@ var Player = function Player(constraints) {
         updatePosition: updatePosition,
         getBoundingBox: getBoundingBox,
         getDamagePower: getDamagePower,
+        detectCollision: detectCollision,
         getPos: getPos,
         repel: repel,
         render: render
@@ -625,7 +639,7 @@ var Player = function Player(constraints) {
 
 exports.Player = Player;
 
-},{"./health.js":3,"./movable":7}],9:[function(require,module,exports){
+},{"./collisions":1,"./health.js":3,"./movable":7}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -684,8 +698,6 @@ var _appKeyboard = require('./app/keyboard');
 
 var _appKeyboard2 = _interopRequireDefault(_appKeyboard);
 
-var _appCollisions = require('./app/collisions');
-
 ;(function () {
 	var keyboard = (0, _appKeyboard2['default'])();
 	var masterLoop = (0, _appLoop2['default'])();
@@ -699,7 +711,6 @@ var _appCollisions = require('./app/collisions');
 		return (0, _appItem2['default'])([cw, ch]);
 	});
 	var uncollidedItems = items;
-	var camera = [0, 0];
 
 	// This will run on document ready
 	var init = function init() {
@@ -730,11 +741,9 @@ var _appCollisions = require('./app/collisions');
 			return function () {
 				var playerPos = player.getPos();
 				var collectedItemAmount = 0;
-				var detectPlayerCollision = (0, _appCollisions.detectCollision)(player.getBoundingBox());
-				var detectEnemyCollision = (0, _appCollisions.detectCollision)(enemy.getBoundingBox());
 
-				var playerToEnemyCollision = detectPlayerCollision(enemy.getBoundingBox());
-				var enemyToPlayerCollision = detectEnemyCollision(player.getBoundingBox());
+				var playerToEnemyCollision = player.detectCollision(enemy.getBoundingBox());
+				var enemyToPlayerCollision = enemy.detectCollision(player.getBoundingBox());
 
 				if (playerToEnemyCollision) {
 					player.repel(playerToEnemyCollision, enemy.getDamagePower());
@@ -745,17 +754,14 @@ var _appCollisions = require('./app/collisions');
 					player.hurt(enemy.getDamagePower());
 				}
 
-				console.log(player.getHealth());
-
 				if (player.getHealth() > 0) player.updatePosition(keyboard.getState());
 				if (enemy.getHealth() > 0) enemy.updatePosition(playerPos.x, playerPos.y);
 
-				// only need to render uncollided items
 				var playerCollectItems = items.filter(function (item) {
-					return detectPlayerCollision(item.getBoundingBox());
+					return player.detectCollision(item.getBoundingBox());
 				});
 				var enemyCollectItems = items.filter(function (item) {
-					return detectEnemyCollision(item.getBoundingBox());
+					return enemy.detectCollision(item.getBoundingBox());
 				});
 
 				player.heal(playerCollectItems.reduce(function (prev, cur) {
@@ -814,7 +820,7 @@ var _appCollisions = require('./app/collisions');
 	(0, _pluginsDomready2['default'])(init);
 })();
 
-},{"./app/collisions":1,"./app/enemy":2,"./app/item":4,"./app/keyboard":5,"./app/loop":6,"./app/player":8,"./app/tools":9,"./plugins/domready":11}],11:[function(require,module,exports){
+},{"./app/enemy":2,"./app/item":4,"./app/keyboard":5,"./app/loop":6,"./app/player":8,"./app/tools":9,"./plugins/domready":11}],11:[function(require,module,exports){
 /*! * domready (c) Dustin Diaz 2012 - License MIT */
 "use strict";
 

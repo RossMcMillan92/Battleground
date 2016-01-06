@@ -8,7 +8,6 @@ import { Enemy } from './app/enemy';
 import Item from './app/item';
 import Keyboard from './app/keyboard';
 
-import { detectCollision } from './app/collisions';
 
 ;(function(){
 	const keyboard      = Keyboard();
@@ -21,7 +20,6 @@ import { detectCollision } from './app/collisions';
 	let enemy           = Enemy([cw, ch]);
 	let items           = Array.from(Array(20)).map(item => Item([cw, ch]));
 	let uncollidedItems = items;
-	let camera          = [0, 0];
 
 	// This will run on document ready
 	const init = function(){
@@ -49,11 +47,9 @@ import { detectCollision } from './app/collisions';
 		const _simulate = (player, enemy) => () => {
 			const playerPos  = player.getPos();
 			let collectedItemAmount = 0;
-			const detectPlayerCollision = detectCollision(player.getBoundingBox());
-			const detectEnemyCollision = detectCollision(enemy.getBoundingBox());
 
-			const playerToEnemyCollision = detectPlayerCollision(enemy.getBoundingBox());
-			const enemyToPlayerCollision = detectEnemyCollision(player.getBoundingBox());
+			const playerToEnemyCollision = player.detectCollision(enemy.getBoundingBox());
+			const enemyToPlayerCollision = enemy.detectCollision(player.getBoundingBox());
 
 			if(playerToEnemyCollision) {
 				player.repel(playerToEnemyCollision, enemy.getDamagePower());
@@ -64,14 +60,11 @@ import { detectCollision } from './app/collisions';
 				player.hurt(enemy.getDamagePower());
 			}
 
-			console.log(player.getHealth())
-
 			if(player.getHealth() > 0) player.updatePosition(keyboard.getState());
 			if(enemy.getHealth() > 0) enemy.updatePosition(playerPos.x, playerPos.y);
 
-			// only need to render uncollided items
-			const playerCollectItems = items.filter(item => detectPlayerCollision(item.getBoundingBox()));
-			const enemyCollectItems = items.filter(item => detectEnemyCollision(item.getBoundingBox()));
+			const playerCollectItems = items.filter(item => player.detectCollision(item.getBoundingBox()));
+			const enemyCollectItems = items.filter(item => enemy.detectCollision(item.getBoundingBox()));
 
 			player.heal(playerCollectItems.reduce((prev, cur) => prev + cur.collect(), 0));
 			enemy.heal(enemyCollectItems.reduce((prev, cur) => prev + cur.collect(), 0));
