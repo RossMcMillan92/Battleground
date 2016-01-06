@@ -1,19 +1,13 @@
-const attractCalc = (curAccel, pos, target, accelStep, decelStep, threshold = false) => {
-    let [ax, ay] = [curAccel.x, curAccel.y];
-    let [dx, dy, distance] = calculateDistance(pos, target);
+const attractCalc = (curAccerl, accelStep, dx, dy) => {
+    let [ax, ay] = [curAccerl.x, curAccerl.y];
 
-    if(distance !== false && Math.abs(distance) < threshold) {
-        calculateAcceleration(curAccel, accelStep, dx < 0 ? -1 : 1);
-        ax = calculateAcceleration(ax, accelStep, dx < 0 ? -1 : 1);
-        ay = calculateAcceleration(ay, accelStep, dy < 0 ? -1 : 1);
+    ax = calculateAcceleration(ax, accelStep, dx < 0 ? -1 : 1);
+    ay = calculateAcceleration(ay, accelStep, dy < 0 ? -1 : 1);
 
-        return {
-            x: ax,
-            y: ay
-        };
-    } 
-
-    return calculateInputDeceleration(curAccel, decelStep);
+    return {
+        x: ax,
+        y: ay
+    };
 }
 
 const calculateDistance = (pos, target) => {
@@ -113,6 +107,7 @@ const getWalkCycle = (walkCycle) => {
 
 export {
     attractCalc,
+    calculateDistance,
     calculateVelocity,
     calculateInputAcceleration,
     calculateInputDeceleration,

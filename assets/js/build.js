@@ -7,9 +7,10 @@ import { Player } from './app/player';
 import { Enemy } from './app/enemy';
 import Item from './app/item';
 import Keyboard from './app/keyboard';
-
+import Background from './app/background';
 
 ;(function(){
+	const bg 			= Background('assets/img/grass-texture.jpg');
 	const keyboard      = Keyboard();
 	const masterLoop    = Loop();
 	const canvas        = document.getElementById('canvas');
@@ -27,14 +28,14 @@ import Keyboard from './app/keyboard';
 		const frame = t => {
 			let simsNeeded = _calculateSimulatioins(t);
 			let camera;
-			let simulation = _simulate(player, enemy);
 
-			simulation();
+			_simulate(player, enemy);
 
-			ctx.save();
 			ctx.clearRect(0, 0, cw, ch);
+			ctx.save();
 			camera = _calculateCameraTranslation([0,0], player.getPos(), cw, ch);
 			ctx.translate(...camera);
+			bg.render(ctx,[cw,ch],camera);
 			uncollidedItems.forEach(item => item.render(ctx));
 			player.render(ctx);
 			enemy.render(ctx);
@@ -44,27 +45,28 @@ import Keyboard from './app/keyboard';
 		}
 
 		// UNPURE AS FUCK
-		const _simulate = (player, enemy) => () => {
-			const playerPos  = player.getPos();
-			let collectedItemAmount = 0;
+		const _simulate = (player, enemy) => {
+			const playerPos         = player.getPos();
+			const uncollidedItemPos = uncollidedItems.length ? uncollidedItems[0].getPos() : false;
 
 			const playerToEnemyCollision = player.detectCollision(enemy.getBoundingBox());
 			const enemyToPlayerCollision = enemy.detectCollision(player.getBoundingBox());
 
 			if(playerToEnemyCollision) {
-				player.repel(playerToEnemyCollision, enemy.getDamagePower());
+				player.repel(playerToEnemyCollision);
 				enemy.hurt(player.getDamagePower());
 			}
 			if(enemyToPlayerCollision) {
-				enemy.repel(enemyToPlayerCollision, player.getDamagePower());
+				enemy.repel(enemyToPlayerCollision);
 				player.hurt(enemy.getDamagePower());
 			}
 
-			if(player.getHealth() > 0) player.updatePosition(keyboard.getState());
-			if(enemy.getHealth() > 0) enemy.updatePosition(playerPos.x, playerPos.y);
+			uncollidedItems = items.filter(item => !item.isCollected());
+			player.updatePosition(keyboard.getState());
+			enemy.updatePosition(playerPos, uncollidedItemPos);
 
-			const playerCollectItems = items.filter(item => player.detectCollision(item.getBoundingBox()));
-			const enemyCollectItems = items.filter(item => enemy.detectCollision(item.getBoundingBox()));
+			const playerCollectItems = uncollidedItems.filter(item => player.detectCollision(item.getBoundingBox()));
+			const enemyCollectItems = uncollidedItems.filter(item => enemy.detectCollision(item.getBoundingBox()));
 
 			player.heal(playerCollectItems.reduce((prev, cur) => prev + cur.collect(), 0));
 			enemy.heal(enemyCollectItems.reduce((prev, cur) => prev + cur.collect(), 0));

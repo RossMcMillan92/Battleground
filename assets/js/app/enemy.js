@@ -4,6 +4,7 @@ import { Health } from './health.js';
 import { detectCollision as detectCollisionCalc } from './collisions';
 import {
     attractCalc,
+    calculateDistance,
     calculateVelocity,
     calculateInputAcceleration,
     calculateInputDeceleration,
@@ -35,7 +36,7 @@ const Enemy = (constraints) => {
     const accelStep = .025;
     const decelStep = .01;
 
-    let damagePower = 5;
+    let damagePower = 25;
     let isRepelling = false;
 
     const walkingMap = [
@@ -48,16 +49,27 @@ const Enemy = (constraints) => {
             direction: 'left'
         },
     ]
-    let attractionThreshold = 500;
+    let attackThreshold = 500;
 
     const getInput = getWalkCycle(walkingMap);
     const velocity = velocityMap['default'];
 
-    const updatePosition = (targetX, targetY) => {
+    const updatePosition = (target, nearestItem) => {
         const input = getInput();
+        const isAlive = health.getHealth() > 0;
+        const isDying = isAlive && health.getHealth() < 50;
         let newAcceleration = acceleration;
         let newPos;
-        newAcceleration = attractCalc(newAcceleration, pos, {x: targetX, y: targetY}, accelStep, decelStep, attractionThreshold);
+
+        // attraction
+        let [dx, dy, distance] = calculateDistance(pos, (isDying && nearestItem ? nearestItem : target));
+        let isAttacking = isAlive && distance !== false && Math.abs(distance) < attackThreshold;
+        if(isAttacking || (isDying && nearestItem)) {
+            newAcceleration = attractCalc(newAcceleration, accelStep, dx, dy);
+        } else {
+            newAcceleration = calculateInputDeceleration(acceleration, decelStep);
+        }
+
         newAcceleration = calculateCollisionAcceleration(newAcceleration, getPos(), constraints, isRepelling);
         newPos = calculatePos(pos, newAcceleration, velocity);
 

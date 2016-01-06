@@ -2,6 +2,48 @@
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
+				value: true
+});
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+var Background = function Background(url) {
+
+				var image = new Image();
+
+				var hasLoaded = false;
+				image.onload = function () {
+								return hasLoaded = true;
+				};
+				image.src = url;
+
+				var render = function render(ctx, constraints, camera) {
+								if (!hasLoaded) return;
+
+								var _constraints = _slicedToArray(constraints, 2);
+
+								var width = _constraints[0];
+								var height = _constraints[1];
+
+								var pattern = ctx.createPattern(image, 'repeat');
+
+								ctx.rect(0, 0, width, height);
+								ctx.fillStyle = pattern;
+								ctx.fill();
+				};
+
+				return {
+								render: render
+				};
+};
+
+exports['default'] = Background;
+module.exports = exports['default'];
+
+},{}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
@@ -51,7 +93,7 @@ var detectCollision = function detectCollision(item1) {
 
 exports.detectCollision = detectCollision;
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -89,7 +131,7 @@ var Enemy = function Enemy(constraints) {
     var accelStep = .025;
     var decelStep = .01;
 
-    var damagePower = 5;
+    var damagePower = 25;
     var isRepelling = false;
 
     var walkingMap = [{
@@ -99,16 +141,35 @@ var Enemy = function Enemy(constraints) {
         duration: 2000,
         direction: 'left'
     }];
-    var attractionThreshold = 500;
+    var attackThreshold = 500;
 
     var getInput = (0, _movable.getWalkCycle)(walkingMap);
     var velocity = velocityMap['default'];
 
-    var updatePosition = function updatePosition(targetX, targetY) {
+    var updatePosition = function updatePosition(target, nearestItem) {
         var input = getInput();
+        var isAlive = health.getHealth() > 0;
+        var isDying = isAlive && health.getHealth() < 50;
         var newAcceleration = acceleration;
         var newPos = undefined;
-        newAcceleration = (0, _movable.attractCalc)(newAcceleration, pos, { x: targetX, y: targetY }, accelStep, decelStep, attractionThreshold);
+
+        // attraction
+
+        var _calculateDistance = (0, _movable.calculateDistance)(pos, isDying && nearestItem ? nearestItem : target);
+
+        var _calculateDistance2 = _slicedToArray(_calculateDistance, 3);
+
+        var dx = _calculateDistance2[0];
+        var dy = _calculateDistance2[1];
+        var distance = _calculateDistance2[2];
+
+        var isAttacking = isAlive && distance !== false && Math.abs(distance) < attackThreshold;
+        if (isAttacking || isDying && nearestItem) {
+            newAcceleration = (0, _movable.attractCalc)(newAcceleration, accelStep, dx, dy);
+        } else {
+            newAcceleration = (0, _movable.calculateInputDeceleration)(acceleration, decelStep);
+        }
+
         newAcceleration = (0, _movable.calculateCollisionAcceleration)(newAcceleration, getPos(), constraints, isRepelling);
         newPos = (0, _movable.calculatePos)(pos, newAcceleration, velocity);
 
@@ -177,7 +238,7 @@ var Enemy = function Enemy(constraints) {
 
 exports.Enemy = Enemy;
 
-},{"./collisions":1,"./health.js":3,"./movable":7}],3:[function(require,module,exports){
+},{"./collisions":2,"./health.js":4,"./movable":8}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -227,15 +288,17 @@ var Health = function Health() {
 
 exports.Health = Health;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var item = function item(constraints) {
-    var width = 30;
-    var height = 30;
+    var dimensions = {
+        width: 30,
+        height: 30
+    };
 
     var pos = {
         x: Math.round(Math.random() * constraints[0]),
@@ -263,21 +326,31 @@ var item = function item(constraints) {
         return healingPower;
     };
 
+    var isCollected = function isCollected() {
+        return collected;
+    };
+
     var getBoundingBox = function getBoundingBox() {
-        return [pos.x, pos.x + width, pos.y, pos.y + height];
+        return [pos.x, pos.x + dimensions.width, pos.y, pos.y + dimensions.height];
+    };
+
+    var getPos = function getPos() {
+        return Object.assign({}, pos, dimensions);
     };
 
     var render = function render(ctx) {
         if (collected) return;
         ctx.beginPath();
         ctx.fillStyle = '#493';
-        ctx.rect(pos.x, pos.y, width, height);
+        ctx.rect(pos.x, pos.y, dimensions.width, dimensions.height);
         ctx.fill();
     };
 
     return {
         update: update,
         collect: collect,
+        isCollected: isCollected,
+        getPos: getPos,
         getBoundingBox: getBoundingBox,
         render: render
     };
@@ -286,7 +359,7 @@ var item = function item(constraints) {
 exports["default"] = item;
 module.exports = exports["default"];
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -353,7 +426,7 @@ function Keyboard() {
 exports['default'] = Keyboard;
 module.exports = exports['default'];
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -392,40 +465,23 @@ var Loop = function Loop() {
 exports["default"] = Loop;
 module.exports = exports["default"];
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
+var attractCalc = function attractCalc(curAccerl, accelStep, dx, dy) {
+    var ax = curAccerl.x;
+    var ay = curAccerl.y;
 
-var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+    ax = calculateAcceleration(ax, accelStep, dx < 0 ? -1 : 1);
+    ay = calculateAcceleration(ay, accelStep, dy < 0 ? -1 : 1);
 
-var attractCalc = function attractCalc(curAccel, pos, target, accelStep, decelStep) {
-    var threshold = arguments.length <= 5 || arguments[5] === undefined ? false : arguments[5];
-    var ax = curAccel.x;
-    var ay = curAccel.y;
-
-    var _calculateDistance = calculateDistance(pos, target);
-
-    var _calculateDistance2 = _slicedToArray(_calculateDistance, 3);
-
-    var dx = _calculateDistance2[0];
-    var dy = _calculateDistance2[1];
-    var distance = _calculateDistance2[2];
-
-    if (distance !== false && Math.abs(distance) < threshold) {
-        calculateAcceleration(curAccel, accelStep, dx < 0 ? -1 : 1);
-        ax = calculateAcceleration(ax, accelStep, dx < 0 ? -1 : 1);
-        ay = calculateAcceleration(ay, accelStep, dy < 0 ? -1 : 1);
-
-        return {
-            x: ax,
-            y: ay
-        };
-    }
-
-    return calculateInputDeceleration(curAccel, decelStep);
+    return {
+        x: ax,
+        y: ay
+    };
 };
 
 var calculateDistance = function calculateDistance(pos, target) {
@@ -531,6 +587,7 @@ var getWalkCycle = function getWalkCycle(walkCycle) {
 };
 
 exports.attractCalc = attractCalc;
+exports.calculateDistance = calculateDistance;
 exports.calculateVelocity = calculateVelocity;
 exports.calculateInputAcceleration = calculateInputAcceleration;
 exports.calculateInputDeceleration = calculateInputDeceleration;
@@ -540,7 +597,7 @@ exports.calculateDeceleration = calculateDeceleration;
 exports.calculatePos = calculatePos;
 exports.getWalkCycle = getWalkCycle;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -581,14 +638,16 @@ var Player = function Player(constraints) {
 
     var updatePosition = function updatePosition(input) {
         var velocity = (0, _movable.calculateVelocity)(velocityMap, input);
-        var inputAcceleration = (0, _movable.calculateInputAcceleration)(acceleration, accelStep, decelStep, input);
-        var inputDeceleration = (0, _movable.calculateInputDeceleration)(inputAcceleration, decelStep, input);
-        var collisionAcceleration = (0, _movable.calculateCollisionAcceleration)(inputDeceleration, getPos(), constraints, isRepelling);
-        var newPos = (0, _movable.calculatePos)(pos, collisionAcceleration, velocity);
+        var newAcceleration = (0, _movable.calculateInputAcceleration)(acceleration, accelStep, decelStep, input);
+        var newPos = undefined;
+
+        newAcceleration = (0, _movable.calculateInputDeceleration)(newAcceleration, decelStep, input);
+        newAcceleration = (0, _movable.calculateCollisionAcceleration)(newAcceleration, getPos(), constraints, isRepelling);
+        newPos = (0, _movable.calculatePos)(pos, newAcceleration, velocity);
 
         // MUTATIONS
         pos = newPos;
-        acceleration = collisionAcceleration;
+        acceleration = newAcceleration;
         isRepelling = false;
     };
 
@@ -639,7 +698,7 @@ var Player = function Player(constraints) {
 
 exports.Player = Player;
 
-},{"./collisions":1,"./health.js":3,"./movable":7}],9:[function(require,module,exports){
+},{"./collisions":2,"./health.js":4,"./movable":8}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -667,7 +726,7 @@ var compose = function compose() {
 exports.repeat = repeat;
 exports.compose = compose;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
@@ -698,7 +757,12 @@ var _appKeyboard = require('./app/keyboard');
 
 var _appKeyboard2 = _interopRequireDefault(_appKeyboard);
 
+var _appBackground = require('./app/background');
+
+var _appBackground2 = _interopRequireDefault(_appBackground);
+
 ;(function () {
+	var bg = (0, _appBackground2['default'])('assets/img/grass-texture.jpg');
 	var keyboard = (0, _appKeyboard2['default'])();
 	var masterLoop = (0, _appLoop2['default'])();
 	var canvas = document.getElementById('canvas');
@@ -718,14 +782,14 @@ var _appKeyboard2 = _interopRequireDefault(_appKeyboard);
 		var frame = function frame(t) {
 			var simsNeeded = _calculateSimulatioins(t);
 			var camera = undefined;
-			var simulation = _simulate(player, enemy);
 
-			simulation();
+			_simulate(player, enemy);
 
-			ctx.save();
 			ctx.clearRect(0, 0, cw, ch);
+			ctx.save();
 			camera = _calculateCameraTranslation([0, 0], player.getPos(), cw, ch);
 			ctx.translate.apply(ctx, _toConsumableArray(camera));
+			bg.render(ctx, [cw, ch], camera);
 			uncollidedItems.forEach(function (item) {
 				return item.render(ctx);
 			});
@@ -738,39 +802,40 @@ var _appKeyboard2 = _interopRequireDefault(_appKeyboard);
 
 		// UNPURE AS FUCK
 		var _simulate = function _simulate(player, enemy) {
-			return function () {
-				var playerPos = player.getPos();
-				var collectedItemAmount = 0;
+			var playerPos = player.getPos();
+			var uncollidedItemPos = uncollidedItems.length ? uncollidedItems[0].getPos() : false;
 
-				var playerToEnemyCollision = player.detectCollision(enemy.getBoundingBox());
-				var enemyToPlayerCollision = enemy.detectCollision(player.getBoundingBox());
+			var playerToEnemyCollision = player.detectCollision(enemy.getBoundingBox());
+			var enemyToPlayerCollision = enemy.detectCollision(player.getBoundingBox());
 
-				if (playerToEnemyCollision) {
-					player.repel(playerToEnemyCollision, enemy.getDamagePower());
-					enemy.hurt(player.getDamagePower());
-				}
-				if (enemyToPlayerCollision) {
-					enemy.repel(enemyToPlayerCollision, player.getDamagePower());
-					player.hurt(enemy.getDamagePower());
-				}
+			if (playerToEnemyCollision) {
+				player.repel(playerToEnemyCollision);
+				enemy.hurt(player.getDamagePower());
+			}
+			if (enemyToPlayerCollision) {
+				enemy.repel(enemyToPlayerCollision);
+				player.hurt(enemy.getDamagePower());
+			}
 
-				if (player.getHealth() > 0) player.updatePosition(keyboard.getState());
-				if (enemy.getHealth() > 0) enemy.updatePosition(playerPos.x, playerPos.y);
+			uncollidedItems = items.filter(function (item) {
+				return !item.isCollected();
+			});
+			player.updatePosition(keyboard.getState());
+			enemy.updatePosition(playerPos, uncollidedItemPos);
 
-				var playerCollectItems = items.filter(function (item) {
-					return player.detectCollision(item.getBoundingBox());
-				});
-				var enemyCollectItems = items.filter(function (item) {
-					return enemy.detectCollision(item.getBoundingBox());
-				});
+			var playerCollectItems = uncollidedItems.filter(function (item) {
+				return player.detectCollision(item.getBoundingBox());
+			});
+			var enemyCollectItems = uncollidedItems.filter(function (item) {
+				return enemy.detectCollision(item.getBoundingBox());
+			});
 
-				player.heal(playerCollectItems.reduce(function (prev, cur) {
-					return prev + cur.collect();
-				}, 0));
-				enemy.heal(enemyCollectItems.reduce(function (prev, cur) {
-					return prev + cur.collect();
-				}, 0));
-			};
+			player.heal(playerCollectItems.reduce(function (prev, cur) {
+				return prev + cur.collect();
+			}, 0));
+			enemy.heal(enemyCollectItems.reduce(function (prev, cur) {
+				return prev + cur.collect();
+			}, 0));
 		};
 
 		var _calculateCameraTranslation = function _calculateCameraTranslation(camera, playerPos, cw, ch) {
@@ -820,7 +885,7 @@ var _appKeyboard2 = _interopRequireDefault(_appKeyboard);
 	(0, _pluginsDomready2['default'])(init);
 })();
 
-},{"./app/enemy":2,"./app/item":4,"./app/keyboard":5,"./app/loop":6,"./app/player":8,"./app/tools":9,"./plugins/domready":11}],11:[function(require,module,exports){
+},{"./app/background":1,"./app/enemy":3,"./app/item":5,"./app/keyboard":6,"./app/loop":7,"./app/player":9,"./app/tools":10,"./plugins/domready":12}],12:[function(require,module,exports){
 /*! * domready (c) Dustin Diaz 2012 - License MIT */
 "use strict";
 
@@ -859,4 +924,4 @@ var _appKeyboard2 = _interopRequireDefault(_appKeyboard);
   };
 });
 
-},{}]},{},[10])
+},{}]},{},[11])

@@ -38,14 +38,16 @@ const Player = (constraints) => {
 
     const updatePosition = (input) => {
         const velocity = calculateVelocity(velocityMap, input);
-        const inputAcceleration = calculateInputAcceleration(acceleration, accelStep, decelStep, input);
-        const inputDeceleration = calculateInputDeceleration(inputAcceleration, decelStep, input);
-        const collisionAcceleration = calculateCollisionAcceleration(inputDeceleration, getPos(), constraints, isRepelling);
-        const newPos = calculatePos(pos, collisionAcceleration, velocity);
+        let newAcceleration = calculateInputAcceleration(acceleration, accelStep, decelStep, input);
+        let newPos;
+
+        newAcceleration = calculateInputDeceleration(newAcceleration, decelStep, input);
+        newAcceleration = calculateCollisionAcceleration(newAcceleration, getPos(), constraints, isRepelling);
+        newPos = calculatePos(pos, newAcceleration, velocity);
 
         // MUTATIONS
         pos          = newPos
-        acceleration = collisionAcceleration;
+        acceleration = newAcceleration;
         isRepelling       = false;
     }
 

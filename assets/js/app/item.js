@@ -1,9 +1,11 @@
 "use strict";
 
 const item = (constraints) => {
-    let width = 30;
-    let height = 30;
-
+    const dimensions = {
+        width: 30,
+        height: 30
+    }
+    
     let pos = {
         x: Math.round(Math.random() * constraints[0]),
         y: Math.round(Math.random() * constraints[1])
@@ -32,19 +34,25 @@ const item = (constraints) => {
         return healingPower;
     }
 
-    const getBoundingBox = () => [pos.x, pos.x + width, pos.y, pos.y + height];
+    const isCollected = () => collected;
+
+    const getBoundingBox = () => [pos.x, pos.x + dimensions.width, pos.y, pos.y + dimensions.height];
+    
+    const getPos = () => Object.assign({}, pos, dimensions);
 
     const render = ctx => {
         if(collected) return;
         ctx.beginPath();
         ctx.fillStyle = '#493';
-        ctx.rect(pos.x, pos.y, width, height);
+        ctx.rect(pos.x, pos.y, dimensions.width, dimensions.height);
         ctx.fill();
     }
 
     return {
         update,
         collect,
+        isCollected,
+        getPos,
         getBoundingBox,
         render
     }
