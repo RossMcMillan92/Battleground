@@ -1275,8 +1275,8 @@ if (!window.console) console = { log: function log() {} };
 	(0, _pluginsDomready2["default"])(init);
 })();
 
-}).call(this,require("ngpmcQ"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./app/collisions":1,"./app/enemy":2,"./app/item":4,"./app/keyboard":5,"./app/loop":6,"./app/player":8,"./app/tools":9,"./plugins/domready":11,"ngpmcQ":12}],11:[function(require,module,exports){
+}).call(this,require("rH1JPG"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./app/collisions":1,"./app/enemy":2,"./app/item":4,"./app/keyboard":5,"./app/loop":6,"./app/player":8,"./app/tools":9,"./plugins/domready":11,"rH1JPG":12}],11:[function(require,module,exports){
 /*! * domready (c) Dustin Diaz 2012 - License MIT */
 "use strict";
 
@@ -1318,18 +1318,17 @@ if (!window.console) console = { log: function log() {} };
 },{}],12:[function(require,module,exports){
 // shim for using process in browser
 
-'use strict';
-
 var process = module.exports = {};
 
 process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined' && window.setImmediate;
-    var canPost = typeof window !== 'undefined' && window.postMessage && window.addEventListener;
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
 
     if (canSetImmediate) {
-        return function (f) {
-            return window.setImmediate(f);
-        };
+        return function (f) { return window.setImmediate(f) };
     }
 
     if (canPost) {
@@ -1373,12 +1372,10 @@ process.emit = noop;
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
-};
+}
 
 // TODO(shtylman)
-process.cwd = function () {
-    return '/';
-};
+process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
