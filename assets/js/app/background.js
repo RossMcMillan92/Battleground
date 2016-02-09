@@ -22,4 +22,3 @@ const Background = (url) => {
 }
 
 export default Background;
-
