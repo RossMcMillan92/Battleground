@@ -1,5 +1,4 @@
 const Background = (url) => {
-    
 	const image = new Image();
 	
 	let hasLoaded = false;

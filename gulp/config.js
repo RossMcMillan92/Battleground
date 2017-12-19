@@ -11,7 +11,7 @@ config = {
 	browserSync: {
 		isEnabled: true,
 
-		devSiteURL: 'ad.dev',
+		devSiteURL: 'localhost',
 		cssAutoreload: true,
 	},
 

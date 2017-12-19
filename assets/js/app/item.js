@@ -1,4 +1,5 @@
-"use strict";
+import CanvasImage from './canvasImage.js'
+import PillImgUrl from '../../img/pill.png'
 
 const item = (constraints) => {
     const dimensions = {
@@ -24,6 +25,9 @@ const item = (constraints) => {
     let collected = false;
     let healingPower = 10;
 
+    
+    const PillImg = CanvasImage(PillImgUrl, dimensions.width, dimensions.height)
+
     const update = () => {
         
     }
@@ -42,10 +46,7 @@ const item = (constraints) => {
 
     const render = ctx => {
         if(collected) return;
-        ctx.beginPath();
-        ctx.fillStyle = '#493';
-        ctx.rect(pos.x, pos.y, dimensions.width, dimensions.height);
-        ctx.fill();
+        PillImg.render(ctx, pos.x, pos.y)
     }
 
     return {

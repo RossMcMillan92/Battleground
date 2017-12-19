@@ -1,0 +1,11 @@
+
+{
+  "printWidth": 120,
+  "semi": false,
+  "overrides": [
+    {
+      "files": ["*.json", ".eslintrc", ".prettierrc"],
+      "options": { "parser": "json" }
+    }
+  ]
+}

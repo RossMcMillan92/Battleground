@@ -40,7 +40,9 @@
     "mocha-babel": "^3.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel index.html --public-url=/dist/",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gulp": "gulp"
   },
   "author": "",
   "license": "ISC"
