@@ -98,8 +98,6 @@ const Enemy = (constraints, { damagePower, dimensions, imageStates}) => {
     let hurtStateTimeout
     const hurt = (amount) => {
         health.hurt(amount)
-        console.log('amount',amount) ;
-        
         currentImageState = 'hurt'
 
         if (hurtStateTimeout) clearTimeout(hurtStateTimeout)

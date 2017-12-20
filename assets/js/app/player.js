@@ -118,7 +118,7 @@ const Player = (constraints) => {
         updatePosition,
     }
 
-    return Object.assign({}, output)
+    return Object.assign({}, health, output)
 }
 
 export { Player }
