@@ -17,7 +17,6 @@ const startLevel = (elements, metadata, callback) => {
   elements.app.classList.remove("is-disabled")
 
   const begin = e => {
-    console.log("E.KEYCODE", e.keyCode)
     if (e.keyCode === 32) {
       document.removeEventListener("keyup", begin, false)
       callback()

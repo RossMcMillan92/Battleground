@@ -39,7 +39,7 @@
 		display: none;
 	}
 
-	#enemy {
+	h1 {
 		font-size: 72px;
 		margin-bottom: 20px;
 	}
@@ -53,6 +53,10 @@
 		font-size: 24px;
 		margin-bottom: 20px;
 	}
+
+	#continue2 {
+		margin-top: 90px;
+	}
 	</style>
 
 </head>
@@ -62,11 +66,17 @@
 
 
 	<div class="app is-disabled" id="app">
-		<div class="app__inner">
-			<div id="enemy"></div>
+		<div id="info" class="app__inner">
+			<h1 id="enemy"></h1>
 			<div id="location"></div>
 			<div id="description"></div>
+			<div id="continue2" class="">Press Space to Continue</div>
 		</div>
+		<div id="action" class="app__inner is-disabled">
+			<h1 id="status" class=""></h1>
+			<div id="continue" class="">Press Space to Continue</div>
+			<div id="retry" class="">Press R to Retry</div>
+		</div
 	</div>
 	<script src="assets/js/script.js"></script>
 </body>

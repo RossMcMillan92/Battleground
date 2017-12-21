@@ -15,8 +15,8 @@ const velocityMap = {
 }
 
 const attackThreshold = 400
-const damagePower = 50
-const startingHealth = 10
+const damagePower = 500
+const startingHealth = 1000
 
 const JamesMainImg = CanvasImage(JamesMainImgUrl, dimensions.width, dimensions.height)
 const JamesDeadImg = CanvasImage(JamesDeadImgUrl, dimensions.width, dimensions.height)
