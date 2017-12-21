@@ -1,31 +1,33 @@
 const Loop = () => {
-	let lastTime = 0;
-	let stopped = false;
-	let callback;
+  let lastTime = 0
+  let stopped = false
+  let callback
+  let animationFrame
 
-	const start = function(fn) {
-		stopped = false;
-		if(typeof fn !== "undefined") callback = fn;
-		
-		requestAnimationFrame(_frame);
-	}
+  const start = function(fn) {
+    stopped = false
+    if (typeof fn !== "undefined") callback = fn
 
-	const stop = function() {
-		stopped = true;
-	}
+    animationFrame = requestAnimationFrame(_frame)
+  }
 
-	const _frame = function(time) {
-		const delta = time - lastTime;
-		lastTime = time;
+  const stop = function() {
+    stopped = true
+    cancelAnimationFrame(animationFrame)
+  }
 
-		callback(delta);
-		if (!stopped) requestAnimationFrame(_frame);
-	};
+  const _frame = function(time) {
+    const delta = time - lastTime
+    lastTime = time
 
-	return {
-		start,
-		stop
-	}
+    callback(delta)
+    if (!stopped) animationFrame = requestAnimationFrame(_frame)
+  }
+
+  return {
+    start,
+    stop
+  }
 }
 
-export default Loop;
+export default Loop

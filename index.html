@@ -13,6 +13,45 @@
 	  height: 100%;
 	  width: 100%;
 	  background-color: #000;
+		font-family: Arial;
+	}
+
+	.app {
+		position: fixed;
+		display: flex;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		color: #fff;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0,0,0,.9);
+		z-index: 100;
+	}
+
+	.app__inner {
+		text-align: center;
+		max-width: 400px;
+	}
+
+	.is-disabled {
+		display: none;
+	}
+
+	#enemy {
+		font-size: 72px;
+		margin-bottom: 20px;
+	}
+
+	#location {
+		font-size: 44px;
+		margin-bottom: 20px;
+	}
+
+	#description {
+		font-size: 24px;
+		margin-bottom: 20px;
 	}
 	</style>
 
@@ -20,8 +59,16 @@
 <body class="preload">
 	<canvas id="canvas"></canvas>
         <div id="wru"></div>
-        
-	<script src="assets/js/script.js"></script>
 
-        </body>
+
+	<div class="app is-disabled" id="app">
+		<div class="app__inner">
+			<div id="enemy"></div>
+			<div id="location"></div>
+			<div id="description"></div>
+		</div>
+	</div>
+	<script src="assets/js/script.js"></script>
+</body>
+
 </html>

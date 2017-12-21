@@ -39,6 +39,7 @@ function Keyboard() {
 
 	const _onKey = (e, value) => {
 		const binding = bindings[e.keyCode];
+		
 		if (!binding) return;
 
 		state[binding] = value;
