@@ -149,7 +149,7 @@ const Game = ({
         }, 5000)
 
         gameIsOver = true
-        if (!player.getHealth() === 0) {
+        if (player.getHealth() !== 0) {
           player.playSound("winning")
           soundApplause.play()
           soundApplause.fade(0.3, 0, 10000)

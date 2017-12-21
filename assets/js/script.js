@@ -29,7 +29,7 @@ const BgMusic = new Howl({
   volume: 0.15
 })
 
-// BgMusic.play()
+BgMusic.play()
 
 let currentLevelIndex = 0
 const Levels = [
