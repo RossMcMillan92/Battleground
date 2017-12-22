@@ -16,8 +16,8 @@ const velocityMap = {
 }
 
 const attackThreshold = 5000
-const damagePower = 50
-const startingHealth = 10
+const damagePower = 10
+const startingHealth = 500
 
 const KieranMainImg = CanvasImage(KieranMainImgUrl, dimensions.width, dimensions.height)
 const KieranDeadImg = CanvasImage(KieranDeadImgUrl, dimensions.width, dimensions.height)

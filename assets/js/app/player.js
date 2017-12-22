@@ -49,7 +49,7 @@ const Player = constraints => {
   const accelStep = 0.025
   const decelStep = 0.05
 
-  let damagePower = 50
+  let damagePower = 40
   let isRepelling = false
 
   const LukeMainImg = CanvasImage(LukeMainImgUrl, dimensions.width, dimensions.height)

@@ -14,9 +14,9 @@ const velocityMap = {
   default: 15
 }
 
-const attackThreshold = 400
+const attackThreshold = 800
 const damagePower = 20
-const startingHealth = 10
+const startingHealth = 100
 
 const RhysMainImg = CanvasImage(RhysMainImgUrl, dimensions.width, dimensions.height)
 const RhysDeadImg = CanvasImage(RhysDeadImgUrl, dimensions.width, dimensions.height)

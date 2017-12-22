@@ -11,12 +11,12 @@ const dimensions = {
 const accelStep = 0.05
 const decelStep = 0.01
 const velocityMap = {
-  default: 10
+  default: 8
 }
 
 const attackThreshold = 400
-const damagePower = 50
-const startingHealth = 10
+const damagePower = 35
+const startingHealth = 100
 
 const StefanMainImg = CanvasImage(StefanMainImgUrl, dimensions.width, dimensions.height)
 const StefanDeadImg = CanvasImage(StefanDeadImgUrl, dimensions.width, dimensions.height)

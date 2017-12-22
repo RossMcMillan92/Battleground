@@ -1,11 +1,12 @@
 import Item from "../../item"
 import Enemy from "./enemy"
-import GroundTextureImg from "../../../../img/floor-garage.png"
+import GroundTextureImg from "../../../../img/floor-kfc.png"
 
 const metadata = {
   enemy: "Kmac2021",
   location: "KFC",
-  description: "With great strength comes great sadness which will slow any man to a near halt"
+  description:
+    "This sad man is used to the pain and so has great health. Weilds the awesome power of memes (but memes don't win fights)"
 }
 
 const getLevel = (cw, ch) => {

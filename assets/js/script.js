@@ -2,6 +2,7 @@ import Game from "./app/game"
 import domready from "./plugins/domready"
 import Keyboard from "./app/keyboard"
 import Loop from "./app/loop"
+import getLevelLindsey from "./app/levels/lindsey"
 import getLevelKieran from "./app/levels/kieran"
 import getLevelJames from "./app/levels/james"
 import getLevelRhys from "./app/levels/rhys"
@@ -11,6 +12,7 @@ import BgMusicUrl from "../audio/bg-music.mp3"
 
 const canvas = document.getElementById("canvas")
 const elements = {
+  intro: document.getElementById("intro"),
   app: document.getElementById("app"),
   info: document.getElementById("info"),
   enemy: document.getElementById("enemy"),
@@ -34,16 +36,16 @@ const BgMusic = new Howl({
   volume: 0.15
 })
 
-// BgMusic.play()
-
 let currentLevelIndex = 0
 const Levels = [
+  getLevelRoss(cw, ch),
+  getLevelKieran(cw, ch),
   getLevelRhys(cw, ch),
   getLevelStefan(cw, ch),
   getLevelJames(cw, ch),
-  getLevelKieran(cw, ch),
-  getLevelRoss(cw, ch)
+  getLevelLindsey(cw, ch)
 ]
+BgMusic.play()
 
 const switchToInfo = () => {
   elements.action.classList.add("is-disabled")
@@ -107,16 +109,16 @@ const init = CurrentLevel => {
     const enemyIsDead = enemyHealth === 0
     switchToAction()
     setRetryText(playerIsDead, enemyIsDead)
-    if (playerIsDead && enemyIsDead) {
-      // show draw screen
-    } else if (enemyIsDead) {
-      // show win screen
-    } else {
-      // show lose screen
-    }
     keylistener = startAgain(playerIsDead, enemyIsDead)
     document.addEventListener("keyup", keylistener, false)
   })
 }
 
-domready(() => init(Levels[currentLevelIndex]))
+const begin = () => {
+  setTimeout(() => {
+    elements.intro.classList.add("is-disabled")
+    init(Levels[currentLevelIndex])
+  }, 7000)
+}
+
+domready(begin)

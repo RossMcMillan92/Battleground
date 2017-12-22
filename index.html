@@ -32,11 +32,12 @@
 
 	.app__inner {
 		text-align: center;
-		max-width: 400px;
+		width: 500px;
+		max-width: 100%;
 	}
 
 	.is-disabled {
-		display: none;
+		display: none !important;
 	}
 
 	h1 {
@@ -57,13 +58,50 @@
 	#continue2 {
 		margin-top: 90px;
 	}
+
+	.intro-screen {
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: #f25f31;
+		display: flex;
+		align-items: center;
+		justify-content: space-around;
+		z-index: 100000;
+	}
+
+	.intro-screen img {
+		max-width: 100%;
+	}
+
+	.intro-screen__loading {
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		transform: translate(-50%, 0);
+
+		color: #fff;
+		font-size: 22px;
+		background-color: #000;
+		padding: 10px;
+		text-align: center;
+	}
 	</style>
 
 </head>
 <body class="preload">
 	<canvas id="canvas"></canvas>
-        <div id="wru"></div>
 
+	<div class="intro-screen" id="intro">
+		<img src="assets/img/intro.png">
+		<div class="intro-screen__loading">
+			Loading... <br>
+			Use 'W', 'A', 'S', 'D' or arrow keys to move, hold 'Shift' to sprint <br>
+			Collect pingers to regain health (be careful, these don't respawn)
+		</div>
+	</div>
 
 	<div class="app is-disabled" id="app">
 		<div id="info" class="app__inner">

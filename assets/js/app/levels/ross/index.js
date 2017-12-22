@@ -5,7 +5,7 @@ import GroundTextureImg from "../../../../img/floor-garage.png"
 const metadata = {
   enemy: "Ross",
   location: "The Garage",
-  description: "A lover, not a fighter"
+  description: "A lover, not a fighter. An easy win"
 }
 
 const getLevel = (cw, ch) => {

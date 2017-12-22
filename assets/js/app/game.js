@@ -8,8 +8,8 @@ import CrowdBooSoundUrl from "../../audio/crowd-boo.mp3"
 
 const updateAppText = (elements, { enemy, location, description }) => {
   if (enemy) elements["enemy"].innerHTML = enemy
-  if (location) elements["location"].innerHTML = location
-  if (description) elements["description"].innerHTML = description
+  if (location) elements["location"].innerHTML = `Location: ${location}`
+  if (description) elements["description"].innerHTML = `Description: ${description}`
 }
 
 const startLevel = (elements, metadata, callback) => {
@@ -141,6 +141,7 @@ const Game = ({
 
     const _checkForGameEnd = () => {
       if (player.getHealth() === 0 || enemy.getHealth() === 0) {
+        console.log("PLAYER.GETHEALTH(), ENEMY.GETHEALTH()", player.getHealth(), enemy.getHealth())
         BgMusic.fade(0.15, 0.05, 250)
 
         setTimeout(() => {
